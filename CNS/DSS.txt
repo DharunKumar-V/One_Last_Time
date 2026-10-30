@@ -1,0 +1,47 @@
+import java.security.*;
+import java.util.Scanner;
+
+public class CreatingDigitalSignature {
+
+    public static void main(String[] args) throws Exception {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter message: ");
+        String message = sc.nextLine();
+
+        KeyPairGenerator keyGen =
+                KeyPairGenerator.getInstance("DSA");
+
+        keyGen.initialize(2048);
+
+        KeyPair pair = keyGen.generateKeyPair();
+
+        PrivateKey privateKey = pair.getPrivate();
+        PublicKey publicKey = pair.getPublic();
+
+        Signature sign =
+                Signature.getInstance("SHA256withDSA");
+
+        sign.initSign(privateKey);
+        sign.update(message.getBytes("UTF-8"));
+
+        byte[] signature = sign.sign();
+
+        System.out.println("Digital Signature: " +
+                java.util.Base64.getEncoder()
+                        .encodeToString(signature));
+
+        Signature verify =
+                Signature.getInstance("SHA256withDSA");
+
+        verify.initVerify(publicKey);
+        verify.update(message.getBytes("UTF-8"));
+
+        boolean verified = verify.verify(signature);
+
+        System.out.println("Signature Verified: " + verified);
+
+        sc.close();
+    }
+}

@@ -1,0 +1,33 @@
+import java.math.BigInteger;
+
+public class DiffieHellman {
+
+    public static void main(String[] args) {
+
+        BigInteger p = BigInteger.valueOf(23);
+        BigInteger g = BigInteger.valueOf(5);
+
+        BigInteger x = BigInteger.valueOf(4);
+        BigInteger y = BigInteger.valueOf(3);
+
+        BigInteger aliceSends = g.modPow(x, p);
+
+        BigInteger bobSends = g.modPow(y, p);
+
+        BigInteger aliceSecret = bobSends.modPow(x, p);
+
+        BigInteger bobSecret = aliceSends.modPow(y, p);
+
+        System.out.println("Alice Sends: " + aliceSends);
+        System.out.println("Bob Sends: " + bobSends);
+
+        System.out.println("Alice Shared Secret: " + aliceSecret);
+        System.out.println("Bob Shared Secret: " + bobSecret);
+
+        if (aliceSecret.equals(bobSecret)) {
+            System.out.println("Success: Shared Secrets Match!");
+        } else {
+            System.out.println("Error: Shared Secrets Do Not Match!");
+        }
+    }
+}

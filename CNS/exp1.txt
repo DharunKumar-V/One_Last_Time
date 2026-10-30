@@ -1,0 +1,286 @@
+Ceaser
+import java.util.Scanner;
+
+public class CaesarCipherMain {
+
+    static String encrypt(String text, int shift) {
+        String result = "";
+
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c)) {
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                result += (char) ((c - base + shift) % 26 + base);
+            } else {
+                result += c;
+            }
+        }
+        return result;
+    }
+
+    static String decrypt(String text, int shift) {
+        return encrypt(text, 26 - (shift % 26));
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter message: ");
+        String message = sc.nextLine();
+
+        System.out.print("Enter shift value: ");
+        int shift = sc.nextInt();
+
+        String encrypted = encrypt(message, shift);
+        String decrypted = decrypt(encrypted, shift);
+
+        System.out.println("Encrypted Message: " + encrypted);
+        System.out.println("Decrypted Message: " + decrypted);
+
+        sc.close();
+    }
+}
+
+Play
+
+import java.util.*;
+
+public class PlayfairCipher {
+
+    static char[][] matrix = new char[5][5];
+
+    static void generateMatrix(String key) {
+        String s = (key + "ABCDEFGHIKLMNOPQRSTUVWXYZ")
+                .toUpperCase().replaceAll("[^A-Z]", "")
+                .replace('J', 'I');
+
+        String result = "";
+
+        for (char c : s.toCharArray()) {
+            if (!result.contains(String.valueOf(c))) {
+                result += c;
+            }
+        }
+
+        for (int i = 0; i < 25; i++) {
+            matrix[i / 5][i % 5] = result.charAt(i);
+        }
+    }
+
+    static int[] find(char c) {
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (matrix[i][j] == c)
+                    return new int[]{i, j};
+            }
+        }
+        return null;
+    }
+
+    static String prepare(String text) {
+        text = text.toUpperCase()
+                .replaceAll("[^A-Z]", "")
+                .replace('J', 'I');
+
+        String result = "";
+
+        for (int i = 0; i < text.length(); i++) {
+            char a = text.charAt(i);
+            char b = (i + 1 < text.length())
+                    ? text.charAt(i + 1) : 'X';
+
+            result += a;
+
+            if (a == b) {
+                result += 'X';
+            } else {
+                i++;
+                result += b;
+            }
+        }
+
+        if (result.length() % 2 != 0)
+            result += 'X';
+
+        return result;
+    }
+
+    static String process(String text, int dir) {
+        String result = "";
+
+        for (int i = 0; i < text.length(); i += 2) {
+            int[] a = find(text.charAt(i));
+            int[] b = find(text.charAt(i + 1));
+
+            if (a[0] == b[0]) {
+                result += matrix[a[0]][(a[1] + dir + 5) % 5];
+                result += matrix[b[0]][(b[1] + dir + 5) % 5];
+            } else if (a[1] == b[1]) {
+                result += matrix[(a[0] + dir + 5) % 5][a[1]];
+                result += matrix[(b[0] + dir + 5) % 5][b[1]];
+            } else {
+                result += matrix[a[0]][b[1]];
+                result += matrix[b[0]][a[1]];
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter key: ");
+        String key = sc.nextLine();
+
+        System.out.print("Enter message: ");
+        String message = sc.nextLine();
+
+        generateMatrix(key);
+
+        String prepared = prepare(message);
+        String encrypted = process(prepared, 1);
+        String decrypted = process(encrypted, -1);
+
+        System.out.println("Prepared Message: " + prepared);
+        System.out.println("Encrypted Message: " + encrypted);
+        System.out.println("Decrypted Message: " + decrypted);
+
+        sc.close();
+    }
+}
+
+
+Hill
+
+import java.util.Scanner;
+
+public class HillCipher {
+
+    static int[][] key = {
+        {1, 2, 1},
+        {2, 3, 2},
+        {2, 2, 1}
+    };
+
+    static int[][] inverse = {
+        {-1, 0, 1},
+        {2, -1, 0},
+        {-2, 2, -1}
+    };
+
+    static String process(String text, int[][] matrix) {
+        String result = "";
+
+        for (int i = 0; i < text.length(); i += 3) {
+            int a = text.charAt(i) - 'A';
+            int b = text.charAt(i + 1) - 'A';
+            int c = text.charAt(i + 2) - 'A';
+
+            for (int j = 0; j < 3; j++) {
+                int value = a * matrix[0][j]
+                          + b * matrix[1][j]
+                          + c * matrix[2][j];
+
+                result += (char) ('A' + ((value % 26 + 26) % 26));
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter message: ");
+        String message = sc.nextLine()
+                .toUpperCase().replaceAll("[^A-Z]", "");
+
+        while (message.length() % 3 != 0) {
+            message += "X";
+        }
+
+        String encrypted = process(message, key);
+        String decrypted = process(encrypted, inverse);
+
+        System.out.println("Padded Message: " + message);
+        System.out.println("Encrypted Message: " + encrypted);
+        System.out.println("Decrypted Message: " + decrypted);
+
+        sc.close();
+    }
+}
+
+
+Vignette
+
+import java.util.Scanner;
+
+public class VigenereCipher {
+
+    static String encrypt(String text, String key) {
+        String result = "";
+        int j = 0;
+
+        text = text.toUpperCase();
+        key = key.toUpperCase();
+
+        for (char c : text.toCharArray()) {
+            if (c >= 'A' && c <= 'Z') {
+                int value = (c - 'A' +
+                        key.charAt(j % key.length()) - 'A') % 26;
+
+                result += (char) (value + 'A');
+                j++;
+            } else {
+                result += c;
+            }
+        }
+
+        return result;
+    }
+
+    static String decrypt(String text, String key) {
+        String result = "";
+        int j = 0;
+
+        key = key.toUpperCase();
+
+        for (char c : text.toUpperCase().toCharArray()) {
+            if (c >= 'A' && c <= 'Z') {
+                int value = (c - 'A' -
+                        key.charAt(j % key.length()) + 26) % 26;
+
+                result += (char) (value + 'A');
+                j++;
+            } else {
+                result += c;
+            }
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter message: ");
+        String message = sc.nextLine();
+
+        System.out.print("Enter key: ");
+        String key = sc.nextLine();
+
+        if (!key.matches("[a-zA-Z]+")) {
+            System.out.println("Key must contain alphabets only.");
+            sc.close();
+            return;
+        }
+
+        String encrypted = encrypt(message, key);
+        String decrypted = decrypt(encrypted, key);
+
+        System.out.println("Encrypted Message: " + encrypted);
+        System.out.println("Decrypted Message: " + decrypted);
+
+        sc.close();
+    }
+}
